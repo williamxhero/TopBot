@@ -169,6 +169,5 @@ dmypy.json
 *.pkl
 *.csv
 *.json
-data/
 output/
 logs/
