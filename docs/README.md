@@ -85,6 +85,20 @@ visualizer.plot_changepoint_analysis(weekly_data, changepoints)
 
 查看 `examples/` 目录获取更多使用示例。
 
+## 高级参数调节
+
+在需要更快速的峰谷确认时，可以调整 `ExtremaClassifier.classify_changepoints`
+ 的 `window` 和 `check_right` 参数：
+
+```python
+peaks, troughs = ExtremaClassifier.classify_changepoints(
+    weekly_data,
+    changepoints,
+    window=0,        # 只检查左侧数据
+    check_right=False
+)
+```
+
 ## 测试
 
 ```bash
