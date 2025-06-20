@@ -55,7 +55,10 @@ def basic_example():
         # 峰谷分类
         classifier = ExtremaClassifier()
         macro_peaks_dt, macro_troughs_dt = classifier.classify_changepoints(
-            wk_series, cp_indices, window=2
+            wk_series,
+            cp_indices,
+            window=1,  # 缩小窗口提高响应速度
+            check_right=False,
         )
         
         # 3. 中观层检测 (日线)

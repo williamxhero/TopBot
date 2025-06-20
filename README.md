@@ -85,7 +85,12 @@ changepoints = detector.detect_comprehensive(weekly_data.values)
 
 # 3. 峰谷分类
 classifier = ExtremaClassifier()
-peaks, troughs = classifier.classify_changepoints(weekly_data, changepoints)
+peaks, troughs = classifier.classify_changepoints(
+    weekly_data,
+    changepoints,
+    window=1,        # 较小窗口更快确认
+    check_right=False  # 仅检查左侧，提前锁定极值
+)
 
 # 4. 可视化
 visualizer = MultiLayerVisualizer()
@@ -217,6 +222,14 @@ changepoints = detector.detect_sd_bocpd(
     beta=0.90,        # 方差持续性
     hazard_rate=1/25, # 变点先验概率
     threshold=0.3     # 检测阈值
+)
+
+# 调整峰谷分类窗口与方向
+peaks, troughs = ExtremaClassifier.classify_changepoints(
+    series,
+    changepoints,
+    window=0,        # 仅判定左侧
+    check_right=False
 )
 ```
 
