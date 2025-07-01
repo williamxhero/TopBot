@@ -29,7 +29,12 @@ def main():
     
     # ========== 2. 数据获取 ==========
     print("正在获取数据...")
-    data_fetcher = StockDataFetcher(SYMBOL, START_DATE)
+    data_fetcher = StockDataFetcher(
+        SYMBOL,
+        START_DATE,
+        end_date=None,
+        source="akshare",
+    )
     
     # 获取各时间周期数据
     df_daily = data_fetcher.get_daily()

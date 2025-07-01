@@ -154,8 +154,8 @@ class ExtremaClassifier:
     """极值点分类器，将变点分类为峰值或谷值"""
     
     @staticmethod
-    def classify_extrema(series: np.ndarray, changepoint_idx: int, 
-                        window: int = 3) -> Optional[str]:
+    def classify_extrema(series: np.ndarray, changepoint_idx: int,
+                        window: int = 3, check_right: bool = True) -> Optional[str]:
         """
         严谨的极值点分类方法
         
@@ -163,35 +163,54 @@ class ExtremaClassifier:
             series: 时间序列数据
             changepoint_idx: 变点索引
             window: 检查窗口大小
+            check_right: 是否检查右侧窗口，False 可更早确认极值
             
         Returns:
             'peak', 'trough' 或 None
         """
-        if changepoint_idx < window or changepoint_idx >= len(series) - window:
+        if changepoint_idx < window or (
+            check_right and changepoint_idx >= len(series) - window
+        ):
             return None
         
         # 扩大窗口检查
         left_window = series[changepoint_idx-window:changepoint_idx]
-        right_window = series[changepoint_idx+1:changepoint_idx+window+1]
+        right_window = (
+            series[changepoint_idx + 1 : changepoint_idx + window + 1]
+            if check_right and window > 0
+            else np.array([])
+        )
         current_value = series[changepoint_idx]
         
         # Peak: 当前值明显高于左右窗口的最大值
-        if (len(left_window) > 0 and len(right_window) > 0 and
-            current_value > np.max(left_window) and 
-            current_value > np.max(right_window)):
+        left_cond = len(left_window) > 0 and current_value > np.max(left_window)
+        right_cond = (
+            not check_right
+            or (len(right_window) > 0 and current_value > np.max(right_window))
+        )
+        if left_cond and right_cond:
             return 'peak'
         
         # Trough: 当前值明显低于左右窗口的最小值  
-        elif (len(left_window) > 0 and len(right_window) > 0 and
-              current_value < np.min(left_window) and 
-              current_value < np.min(right_window)):
+        elif (
+            len(left_window) > 0
+            and current_value < np.min(left_window)
+            and (
+                not check_right
+                or (len(right_window) > 0 and current_value < np.min(right_window))
+            )
+        ):
             return 'trough'
         
         return None
     
     @staticmethod
-    def classify_changepoints(series: pd.Series, changepoints: List[int], 
-                            window: int = 2) -> tuple:
+    def classify_changepoints(
+        series: pd.Series,
+        changepoints: List[int],
+        window: int = 2,
+        check_right: bool = True,
+    ) -> tuple:
         """
         对变点列表进行峰谷分类
         
@@ -199,6 +218,7 @@ class ExtremaClassifier:
             series: 带索引的时间序列
             changepoints: 变点索引列表
             window: 分类窗口大小
+            check_right: 是否检查右侧窗口，False 表示仅检查左侧
             
         Returns:
             (peaks_dates, troughs_dates): 峰值和谷值的日期列表
@@ -207,7 +227,7 @@ class ExtremaClassifier:
         
         for idx in changepoints:
             extrema_type = ExtremaClassifier.classify_extrema(
-                series.values, idx, window=window
+                series.values, idx, window=window, check_right=check_right
             )
             
             if extrema_type == 'peak':

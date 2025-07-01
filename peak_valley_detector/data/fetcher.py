@@ -1,74 +1,86 @@
-"""
-数据获取模块
-处理股票历史数据的抓取和预处理
-"""
+"""High level stock data fetcher that delegates to pluggable data sources."""
 
-import akshare as ak
+from __future__ import annotations
+
+from typing import Optional, Type
+
 import pandas as pd
-import numpy as np
+
+from .sources import BaseDataSource, SOURCE_REGISTRY
 
 
 class StockDataFetcher:
-    """股票数据获取器"""
-    
-    def __init__(self, symbol: str, start_date: str):
+    """Facade class for fetching stock data from various sources."""
+
+    def __init__(
+        self,
+        symbol: str,
+        start_date: str,
+        end_date: Optional[str] = None,
+        source: str = "akshare",
+        token: Optional[str] = None,
+    ):
+        """Create data fetcher.
+
+        Parameters
+        ----------
+        symbol: 股票代码，如 "000001"
+        start_date: 开始日期，格式 "YYYY-MM-DD"
+        end_date: 结束日期，格式 "YYYY-MM-DD"
+        source: 数据源名称，对应 ``SOURCE_REGISTRY``
+        token: 掘金量化接口 token（某些数据源可能需要）
         """
-        初始化数据获取器
-        
-        Args:
-            symbol: 股票代码，如 "000001"
-            start_date: 开始日期，格式 "YYYY-MM-DD"
-        """
+
         self.symbol = symbol
         self.start_date = start_date
+        self.end_date = end_date
+
+        source_cls: Type[BaseDataSource] | None = SOURCE_REGISTRY.get(source)
+        if source_cls is None:
+            raise ValueError(f"Unsupported data source: {source}")
+
+        self._source = source_cls(symbol, start_date, end_date=end_date, token=token)
     
-    def get_hist(self, period: str) -> pd.DataFrame:
-        """
-        通用历史行情抓取（复权收盘 / 最高 / 最低）
-        
-        Args:
-            period: 时间周期，如 "daily", "weekly"
-            
-        Returns:
-            DataFrame: 包含 close, high, low 的历史数据
-        """
-        df_raw = ak.stock_zh_a_hist(
-            symbol=self.symbol,
-            period=period,
-            start_date=self.start_date,
-            adjust="qfq"
+    def get_hist(
+        self,
+        period: str,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+    ) -> pd.DataFrame:
+        """通用历史行情抓取（复权收盘/最高/最低）."""
+
+        df = self._source.get_hist(
+            period,
+            start_date=start_date or self.start_date,
+            end_date=end_date or self.end_date,
         )
-        
-        df = (df_raw[['日期', '收盘', '最高', '最低']]
-               .rename(columns={
-                   '日期': 'date',
-                   '收盘': 'close',
-                   '最高': 'high',
-                   '最低': 'low'
-               }))
-        
-        df['date'] = pd.to_datetime(df['date'])
-        df = df.set_index('date').sort_index()
         return df
     
-    def get_daily(self) -> pd.DataFrame:
+    def get_daily(
+        self,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+    ) -> pd.DataFrame:
         """获取日线数据"""
-        return self.get_hist('daily')
+        return self.get_hist("daily", start_date=start_date, end_date=end_date)
     
-    def get_weekly(self) -> pd.Series:
+    def get_weekly(
+        self,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+    ) -> pd.Series:
         """获取周线收盘价数据"""
-        daily = self.get_daily()
-        return daily['close'].resample('W-FRI').last()
+        daily = self.get_daily(start_date=start_date, end_date=end_date)
+        return daily["close"].resample("W-FRI").last()
     
-    def get_60min(self) -> pd.DataFrame:
-        """获取60分钟K线数据"""
-        h1_raw = ak.stock_zh_a_hist_min_em(
-            symbol=self.symbol,
-            period="60",
-            adjust="qfq"
+    def get_60min(
+        self,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+    ) -> pd.DataFrame:
+        """获取60分钟K线数据."""
+
+        return self._source.get_60min(
+            start_date=start_date or self.start_date,
+            end_date=end_date or self.end_date,
         )
-        
-        # 合成完整时间戳，防止索引重复
-        h1_raw['datetime'] = pd.to_datetime(h1_raw['时间'])
-        h1_raw = h1_raw.set_index('datetime').sort_index()
-        return h1_raw
