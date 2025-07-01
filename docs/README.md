@@ -22,7 +22,7 @@ from peak_valley_detector import (
 )
 
 # 获取股票数据
-data_fetcher = StockDataFetcher("000001", "2024-06-01")
+data_fetcher = StockDataFetcher("000001", "2024-06-01", source="akshare")
 weekly_data = data_fetcher.get_weekly()
 
 # 变点检测
@@ -56,6 +56,7 @@ visualizer.plot_changepoint_analysis(weekly_data, changepoints)
 - `get_daily()`: 获取日线数据
 - `get_weekly()`: 获取周线数据
 - `get_60min()`: 获取60分钟数据
+- `source` 参数在插件式架构下选择数据接口，默认支持 `akshare` 与 `myquant`，可扩展
 
 ### 可视化模块 (visualization)
 
@@ -84,6 +85,20 @@ visualizer.plot_changepoint_analysis(weekly_data, changepoints)
 ## 示例
 
 查看 `examples/` 目录获取更多使用示例。
+
+## 高级参数调节
+
+在需要更快速的峰谷确认时，可以调整 `ExtremaClassifier.classify_changepoints`
+ 的 `window` 和 `check_right` 参数：
+
+```python
+peaks, troughs = ExtremaClassifier.classify_changepoints(
+    weekly_data,
+    changepoints,
+    window=0,        # 只检查左侧数据
+    check_right=False
+)
+```
 
 ## 测试
 
