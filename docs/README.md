@@ -22,7 +22,12 @@ from peak_valley_detector import (
 )
 
 # 获取股票数据
-data_fetcher = StockDataFetcher("000001", "2024-06-01", source="akshare")
+data_fetcher = StockDataFetcher(
+    "000001",
+    "2024-06-01",
+    end_date=None,
+    source="akshare",
+)
 weekly_data = data_fetcher.get_weekly()
 
 # 变点检测
@@ -56,6 +61,7 @@ visualizer.plot_changepoint_analysis(weekly_data, changepoints)
 - `get_daily()`: 获取日线数据
 - `get_weekly()`: 获取周线数据
 - `get_60min()`: 获取60分钟数据
+- 所有函数支持 `start_date` 与 `end_date` 参数，可覆盖初始化设置
 - `source` 参数在插件式架构下选择数据接口，默认支持 `akshare` 与 `myquant`，可扩展
 
 ### 可视化模块 (visualization)
