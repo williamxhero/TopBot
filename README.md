@@ -76,7 +76,12 @@ from peak_valley_detector import (
 )
 
 # 1. 数据获取
-data_fetcher = StockDataFetcher("000001", "2024-06-01", source="akshare")
+data_fetcher = StockDataFetcher(
+    "000001",
+    "2024-06-01",
+    end_date=None,  # 可选结束日期
+    source="akshare",
+)
 weekly_data = data_fetcher.get_weekly()
 
 # 2. 变点检测
@@ -136,6 +141,7 @@ GAS模型实现：
 - `get_daily()`: 获取日线数据
 - `get_weekly()`: 获取周线数据
 - `get_60min()`: 获取60分钟数据
+- 所有函数均支持 `start_date` 与 `end_date` 参数，便于灵活截取数据
 - 自动处理复权和时间索引
 - `source` 参数在插件式架构下选择数据接口，默认支持 `akshare` 与 `myquant`，可按需扩展
 
