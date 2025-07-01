@@ -37,7 +37,7 @@ def basic_example():
     try:
         # 1. 数据获取
         print("1. 获取股票数据...")
-        data_fetcher = StockDataFetcher(SYMBOL, START_DATE)
+        data_fetcher = StockDataFetcher(SYMBOL, START_DATE, source="akshare")
         
         df_daily = data_fetcher.get_daily()
         wk_series = data_fetcher.get_weekly()
