@@ -39,14 +39,12 @@ def basic_example():
         print("1. 获取股票数据...")
         data_fetcher = StockDataFetcher(
             SYMBOL,
-            START_DATE,
-            end_date=None,
             source="akshare",
         )
-        
-        df_daily = data_fetcher.get_daily()
-        wk_series = data_fetcher.get_weekly()
-        h1_data = data_fetcher.get_60min()
+
+        df_daily = data_fetcher.get_daily(start_date=START_DATE)
+        wk_series = data_fetcher.get_weekly(start_date=START_DATE)
+        h1_data = data_fetcher.get_60min(start_date=START_DATE)
         
         print(f"   日线数据: {len(df_daily)} 条")
         print(f"   周线数据: {len(wk_series)} 条")

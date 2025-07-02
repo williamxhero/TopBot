@@ -21,13 +21,9 @@ class BaseDataSource(ABC):
     def __init__(
         self,
         symbol: str,
-        start_date: str,
-        end_date: Optional[str] = None,
         token: Optional[str] = None,
     ):
         self.symbol = symbol
-        self.start_date = start_date
-        self.end_date = end_date
         self.token = token
 
     @abstractmethod
@@ -58,9 +54,10 @@ class AkShareSource(BaseDataSource):
         df_kwargs = {
             "symbol": self.symbol,
             "period": period,
-            "start_date": start_date or self.start_date,
             "adjust": "qfq",
         }
+        if start_date:
+            df_kwargs["start_date"] = start_date
         if end_date:
             df_kwargs["end_date"] = end_date
         df_raw = ak.stock_zh_a_hist(**df_kwargs)
@@ -82,8 +79,9 @@ class AkShareSource(BaseDataSource):
             "period": "60",
             "adjust": "qfq",
         }
-        if start_date or self.start_date:
-            df_kwargs["start_date"] = start_date or self.start_date
+
+        if start_date:
+            df_kwargs["start_date"] = start_date
         if end_date:
             df_kwargs["end_date"] = end_date
         h1_raw = ak.stock_zh_a_hist_min_em(**df_kwargs)
@@ -97,15 +95,13 @@ class MyQuantSource(BaseDataSource):
     def __init__(
         self,
         symbol: str,
-        start_date: str,
-        end_date: Optional[str] = None,
         token: Optional[str] = None,
     ):
         if gm_history is None:
             raise ImportError("MyQuant 数据接口不可用，请先安装 gm.api 并配置 token")
         if gm_set_token and token:
             gm_set_token(token)
-        super().__init__(symbol, start_date, end_date=end_date, token=token)
+        super().__init__(symbol, token=token)
 
     def get_hist(
         self,
@@ -116,13 +112,15 @@ class MyQuantSource(BaseDataSource):
         freq_map = {"daily": "1d", "weekly": "1w", "60min": "60m"}
         hist_kwargs = {
             "symbol": self.symbol,
-            "start_time": start_date or self.start_date,
             "frequency": freq_map.get(period, "1d"),
             "fields": "close,high,low",
             "adjust": "qfq",
         }
-        if end_date or self.end_date:
-            hist_kwargs["end_time"] = end_date or self.end_date
+
+        if start_date:
+            hist_kwargs["start_time"] = start_date
+        if end_date:
+            hist_kwargs["end_time"] = end_date
         df_raw = gm_history(**hist_kwargs)
         df = df_raw.rename(columns={"eob": "date"})
         df["date"] = pd.to_datetime(df["date"])
@@ -133,13 +131,16 @@ class MyQuantSource(BaseDataSource):
     ) -> pd.DataFrame:
         hist_kwargs = {
             "symbol": self.symbol,
-            "start_time": start_date or self.start_date,
             "frequency": "60m",
             "fields": "close,high,low",
             "adjust": "qfq",
         }
-        if end_date or self.end_date:
-            hist_kwargs["end_time"] = end_date or self.end_date
+
+        if start_date:
+            hist_kwargs["start_time"] = start_date
+        if end_date:
+            hist_kwargs["end_time"] = end_date
+
         df_raw = gm_history(**hist_kwargs)
         df_raw = df_raw.rename(columns={"eob": "datetime"})
         df_raw["datetime"] = pd.to_datetime(df_raw["datetime"])

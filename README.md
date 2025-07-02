@@ -38,8 +38,6 @@ TopBot_proj/
 │   └── test_core.py             # 核心模块测试
 ├── examples/                     # 使用示例
 │   └── basic_usage.py           # 基本使用示例
-├── docs/                         # 文档目录
-│   └── README.md                # 详细文档
 ├── main.py                       # 主程序入口
 ├── setup.py                      # 安装配置
 ├── pyproject.toml               # 现代Python项目配置
@@ -78,11 +76,9 @@ from peak_valley_detector import (
 # 1. 数据获取
 data_fetcher = StockDataFetcher(
     "000001",
-    "2024-06-01",
-    end_date=None,  # 可选结束日期
     source="akshare",
 )
-weekly_data = data_fetcher.get_weekly()
+weekly_data = data_fetcher.get_weekly(start_date="2024-06-01")
 
 # 2. 变点检测
 detector = HybridChangePointDetector()
