@@ -37,11 +37,14 @@ def basic_example():
     try:
         # 1. 数据获取
         print("1. 获取股票数据...")
-        data_fetcher = StockDataFetcher(SYMBOL, START_DATE)
-        
-        df_daily = data_fetcher.get_daily()
-        wk_series = data_fetcher.get_weekly()
-        h1_data = data_fetcher.get_60min()
+        data_fetcher = StockDataFetcher(
+            SYMBOL,
+            source="akshare",
+        )
+
+        df_daily = data_fetcher.get_daily(start_date=START_DATE)
+        wk_series = data_fetcher.get_weekly(start_date=START_DATE)
+        h1_data = data_fetcher.get_60min(start_date=START_DATE)
         
         print(f"   日线数据: {len(df_daily)} 条")
         print(f"   周线数据: {len(wk_series)} 条")
@@ -55,7 +58,10 @@ def basic_example():
         # 峰谷分类
         classifier = ExtremaClassifier()
         macro_peaks_dt, macro_troughs_dt = classifier.classify_changepoints(
-            wk_series, cp_indices, window=2
+            wk_series,
+            cp_indices,
+            window=1,  # 缩小窗口提高响应速度
+            check_right=False,
         )
         
         # 3. 中观层检测 (日线)

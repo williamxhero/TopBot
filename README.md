@@ -38,8 +38,6 @@ TopBot_proj/
 │   └── test_core.py             # 核心模块测试
 ├── examples/                     # 使用示例
 │   └── basic_usage.py           # 基本使用示例
-├── docs/                         # 文档目录
-│   └── README.md                # 详细文档
 ├── main.py                       # 主程序入口
 ├── setup.py                      # 安装配置
 ├── pyproject.toml               # 现代Python项目配置
@@ -76,8 +74,11 @@ from peak_valley_detector import (
 )
 
 # 1. 数据获取
-data_fetcher = StockDataFetcher("000001", "2024-06-01")
-weekly_data = data_fetcher.get_weekly()
+data_fetcher = StockDataFetcher(
+    "000001",
+    source="akshare",
+)
+weekly_data = data_fetcher.get_weekly(start_date="2024-06-01")
 
 # 2. 变点检测
 detector = HybridChangePointDetector()
@@ -85,7 +86,12 @@ changepoints = detector.detect_comprehensive(weekly_data.values)
 
 # 3. 峰谷分类
 classifier = ExtremaClassifier()
-peaks, troughs = classifier.classify_changepoints(weekly_data, changepoints)
+peaks, troughs = classifier.classify_changepoints(
+    weekly_data,
+    changepoints,
+    window=1,        # 较小窗口更快确认
+    check_right=False  # 仅检查左侧，提前锁定极值
+)
 
 # 4. 可视化
 visualizer = MultiLayerVisualizer()
@@ -129,9 +135,11 @@ GAS模型实现：
 #### `StockDataFetcher`
 股票数据获取器：
 - `get_daily()`: 获取日线数据
-- `get_weekly()`: 获取周线数据  
+- `get_weekly()`: 获取周线数据
 - `get_60min()`: 获取60分钟数据
+- 所有函数均支持 `start_date` 与 `end_date` 参数，便于灵活截取数据
 - 自动处理复权和时间索引
+- `source` 参数在插件式架构下选择数据接口，默认支持 `akshare` 与 `myquant`，可按需扩展
 
 ### 可视化模块 (`peak_valley_detector.visualization`)
 
@@ -217,6 +225,14 @@ changepoints = detector.detect_sd_bocpd(
     beta=0.90,        # 方差持续性
     hazard_rate=1/25, # 变点先验概率
     threshold=0.3     # 检测阈值
+)
+
+# 调整峰谷分类窗口与方向
+peaks, troughs = ExtremaClassifier.classify_changepoints(
+    series,
+    changepoints,
+    window=0,        # 仅判定左侧
+    check_right=False
 )
 ```
 
