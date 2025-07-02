@@ -76,11 +76,9 @@ from peak_valley_detector import (
 # 1. 数据获取
 data_fetcher = StockDataFetcher(
     "000001",
-    "2024-06-01",
-    end_date=None,  # 可选结束日期
     source="akshare",
 )
-weekly_data = data_fetcher.get_weekly()
+weekly_data = data_fetcher.get_weekly(start_date="2024-06-01")
 
 # 2. 变点检测
 detector = HybridChangePointDetector()
