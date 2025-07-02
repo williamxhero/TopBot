@@ -79,6 +79,7 @@ class AkShareSource(BaseDataSource):
             "period": "60",
             "adjust": "qfq",
         }
+
         if start_date:
             df_kwargs["start_date"] = start_date
         if end_date:
@@ -115,6 +116,7 @@ class MyQuantSource(BaseDataSource):
             "fields": "close,high,low",
             "adjust": "qfq",
         }
+
         if start_date:
             hist_kwargs["start_time"] = start_date
         if end_date:
@@ -133,10 +135,12 @@ class MyQuantSource(BaseDataSource):
             "fields": "close,high,low",
             "adjust": "qfq",
         }
+
         if start_date:
             hist_kwargs["start_time"] = start_date
         if end_date:
             hist_kwargs["end_time"] = end_date
+
         df_raw = gm_history(**hist_kwargs)
         df_raw = df_raw.rename(columns={"eob": "datetime"})
         df_raw["datetime"] = pd.to_datetime(df_raw["datetime"])

@@ -19,16 +19,13 @@ class StockDataFetcher:
         token: Optional[str] = None,
     ):
         """Create data fetcher.
-
         Parameters
         ----------
         symbol: 股票代码，如 "000001"
         source: 数据源名称，对应 ``SOURCE_REGISTRY``
         token: 掘金量化接口 token（某些数据源可能需要）
         """
-
         self.symbol = symbol
-
         source_cls: Type[BaseDataSource] | None = SOURCE_REGISTRY.get(source)
         if source_cls is None:
             raise ValueError(f"Unsupported data source: {source}")
@@ -45,6 +42,7 @@ class StockDataFetcher:
 
         df = self._source.get_hist(
             period,
+
             start_date=start_date,
             end_date=end_date,
         )
