@@ -29,26 +29,51 @@ def basic_example():
     
     # 配置参数
     SYMBOL = "000001"  # 平安银行
-    START_DATE = "2024-06-01"
-    
+    START_DATE = "2025-01-03"  # MyQuant 权限限制：最近180天
+    END_DATE = "2025-07-01"
+
     print(f"分析股票: {SYMBOL}")
     print(f"起始日期: {START_DATE}\n")
     
     try:
         # 1. 数据获取
         print("1. 获取股票数据...")
-        data_fetcher = StockDataFetcher(
-            SYMBOL,
-            source="akshare",
-        )
-
-        df_daily = data_fetcher.get_daily(start_date=START_DATE)
-        wk_series = data_fetcher.get_weekly(start_date=START_DATE)
-        h1_data = data_fetcher.get_60min(start_date=START_DATE)
+        # 使用配置文件自动读取数据源和token配置
+        data_fetcher = StockDataFetcher()
         
-        print(f"   日线数据: {len(df_daily)} 条")
-        print(f"   周线数据: {len(wk_series)} 条")
-        print(f"   60分钟数据: {len(h1_data)} 条\n")
+        print("   获取日线数据...")
+        df_daily = data_fetcher.get_daily(SYMBOL, start_date=START_DATE, end_date=END_DATE)
+        print(f"   ✓ 日线数据: {len(df_daily)} 条")
+        
+        print("   获取周线数据...")
+        wk_series = data_fetcher.get_weekly(SYMBOL, start_date=START_DATE, end_date=END_DATE)
+        print(f"   ✓ 周线数据: {len(wk_series)} 条")
+        
+        print("   获取60分钟数据...")
+        try:
+            h1_data = data_fetcher.get_60min(SYMBOL, start_date=START_DATE, end_date=END_DATE)
+            print(f"   ✓ 60分钟数据: {len(h1_data)} 条")
+        except Exception as e:
+            print(f"   ⚠ 60分钟数据获取失败: {e}")
+            print("   → 降级使用akshare获取60分钟数据...")
+            # 降级使用akshare
+            fallback_fetcher = StockDataFetcher(source="akshare") 
+            try:
+                h1_data = fallback_fetcher.get_60min(SYMBOL, start_date=START_DATE, end_date=END_DATE)
+                print(f"   ✓ 60分钟数据(akshare): {len(h1_data)} 条")
+            except Exception as e2:
+                print(f"   ✗ akshare也无法获取60分钟数据: {e2}")
+                print("   → 使用日线数据模拟60分钟数据用于演示...")
+                # 创建模拟数据用于演示
+                import pandas as pd
+                h1_data = pd.DataFrame({
+                    '收盘': df_daily['close'].resample('H').ffill()[:100],
+                    '最高': df_daily['high'].resample('H').ffill()[:100],
+                    '最低': df_daily['low'].resample('H').ffill()[:100]
+                }).dropna()
+                print(f"   ✓ 模拟60分钟数据: {len(h1_data)} 条")
+        
+        print()
         
         # 2. 宏观层检测 (周线 + SD-BOCPD)
         print("2. 宏观层变点检测...")

@@ -30,14 +30,13 @@ def main():
     # ========== 2. 数据获取 ==========
     print("正在获取数据...")
     data_fetcher = StockDataFetcher(
-        SYMBOL,
         source="akshare",
     )
 
     # 获取各时间周期数据
-    df_daily = data_fetcher.get_daily(start_date=START_DATE)
-    wk_series = data_fetcher.get_weekly(start_date=START_DATE)
-    h1_data = data_fetcher.get_60min(start_date=START_DATE)
+    df_daily = data_fetcher.get_daily(SYMBOL, start_date=START_DATE)
+    wk_series = data_fetcher.get_weekly(SYMBOL, start_date=START_DATE)
+    h1_data = data_fetcher.get_60min(SYMBOL, start_date=START_DATE)
     
     print(f"日线数据: {len(df_daily)} 条")
     print(f"周线数据: {len(wk_series)} 条")

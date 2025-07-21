@@ -171,3 +171,11 @@ dmypy.json
 *.json
 output/
 logs/
+
+# Configuration files with sensitive data
+config.yaml
+config.yml
+data_sources_config.yaml
+data_sources_config.yml
+local_config.yaml
+local_config.yml

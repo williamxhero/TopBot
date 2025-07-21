@@ -6,3 +6,4 @@ matplotlib
 ta
 ruptures
 filterpy
+PyYAML

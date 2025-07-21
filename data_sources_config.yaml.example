@@ -1,0 +1,23 @@
+# 数据源配置文件模板
+# 复制此文件为 data_sources_config.yaml 并填入你的配置
+# 注意：配置文件包含敏感信息，不要提交到版本控制系统
+
+# 默认数据源 - 当特定API没有指定数据源时使用
+default_source: "akshare"
+
+# 各API使用的数据源配置
+source_config:
+  daily: "akshare"      # 日线数据使用akshare
+  weekly: "akshare"     # 周线数据使用akshare  
+  60min: "myquant"      # 60分钟数据使用myquant
+  hist: "akshare"       # 通用历史数据使用akshare
+
+# 数据源认证token
+tokens:
+  myquant: "YOUR_MYQUANT_TOKEN_HERE"  # 请替换为你的MyQuant token
+  # 可以添加其他数据源的token
+  # other_source: "your_token_here"
+
+# 其他可选配置
+# cache_enabled: true
+# cache_ttl: 3600  # 缓存时间（秒）
